@@ -2,16 +2,18 @@
 // 此文件将处理所有HTTP请求并路由到相应的HTML文件
 
 const fs = require('fs').promises;
-const path = require('path');
+const pathModule = require('path');
 
 // 配置路由规则
 const routes = [
-  { pattern: '/', file: 'index.html' },
-  { pattern: '/englishppt', file: 'englishppt.html' }
+    { pattern: '/', file: 'index.html' },
+    { pattern: '/englishppt', file: 'englishppt.html' },
+    // 添加对带.html后缀的支持
+    { pattern: '/englishppt.html', file: 'englishppt.html' }
 ];
 
-// HTML文件基础路径
-const BASE_PATH = '../html';
+// HTML文件基础路径 - 适配EdgeOne Pages部署环境
+const BASE_PATH = './html';
 
 /**
  * EdgeOne Pages HTTP 处理函数
@@ -19,34 +21,34 @@ const BASE_PATH = '../html';
  * @param {Object} context - 上下文对象
  * @returns {Promise<Object>} - HTTP响应
  */
-export default async function handler(request, context) {
-  try {
-    // 获取请求路径
-    const url = new URL(request.url);
-    let path = url.pathname;
-    
-    console.log(`Received request for path: ${path}`);
-    
-    // 路径归一化
-    path = normalizePath(path);
-    
-    // 匹配路由
-    const matchedRoute = matchRoute(path, routes);
-    if (!matchedRoute) {
-      return createNotFoundResponse();
+async function handler(request, context) {
+    try {
+        // 获取请求路径
+        const url = new URL(request.url);
+        let requestPath = url.pathname;
+
+        console.log(`Received request for path: ${requestPath}`);
+
+        // 路径归一化
+        requestPath = normalizePath(requestPath);
+
+        // 匹配路由
+        const matchedRoute = matchRoute(requestPath, routes);
+        if (!matchedRoute) {
+            return createNotFoundResponse();
+        }
+
+        console.log(`Matched route: ${matchedRoute.pattern} -> ${matchedRoute.file}`);
+
+        // 读取HTML文件
+        const htmlContent = await readHTMLFile(matchedRoute.file);
+
+        // 返回成功响应
+        return createSuccessResponse(htmlContent);
+    } catch (error) {
+        console.error('Error handling request:', error);
+        return createServerErrorResponse(error);
     }
-    
-    console.log(`Matched route: ${matchedRoute.pattern} -> ${matchedRoute.file}`);
-    
-    // 读取HTML文件
-    const htmlContent = await readHTMLFile(matchedRoute.file);
-    
-    // 返回成功响应
-    return createSuccessResponse(htmlContent);
-  } catch (error) {
-    console.error('Error handling request:', error);
-    return createServerErrorResponse(error);
-  }
 }
 
 /**
@@ -55,9 +57,9 @@ export default async function handler(request, context) {
  * @returns {string} - 归一化后的路径
  */
 function normalizePath(path) {
-  let normalizedPath = path.replace(/^\/*/, '/').replace(/\/*$/, '');
-  if (normalizedPath === '') normalizedPath = '/';
-  return normalizedPath;
+    let normalizedPath = path.replace(/^\/*/, '/').replace(/\/*$/, '');
+    if (normalizedPath === '') normalizedPath = '/';
+    return normalizedPath;
 }
 
 /**
@@ -67,17 +69,17 @@ function normalizePath(path) {
  * @returns {Object|null} - 匹配的路由或null
  */
 function matchRoute(path, routes) {
-  // 先尝试完全匹配
-  for (const route of routes) {
-    if (route.pattern === path) {
-      return route;
+    // 先尝试完全匹配
+    for (const route of routes) {
+        if (route.pattern === path) {
+            return route;
+        }
     }
-  }
-  
-  // 再尝试动态参数匹配（目前未实现，如需可扩展）
-  // 再尝试通配符匹配（目前未实现，如需可扩展）
-  
-  return null;
+
+    // 再尝试动态参数匹配（目前未实现，如需可扩展）
+    // 再尝试通配符匹配（目前未实现，如需可扩展）
+
+    return null;
 }
 
 /**
@@ -86,16 +88,16 @@ function matchRoute(path, routes) {
  * @returns {Promise<string>} - 文件内容
  */
 async function readHTMLFile(fileName) {
-  const filePath = path.join(__dirname, BASE_PATH, fileName);
-  try {
-    const content = await fs.readFile(filePath, 'utf8');
-    return content;
-  } catch (error) {
-    if (error.code === 'ENOENT') {
-      throw new Error(`HTML file not found: ${fileName}`);
+    const filePath = pathModule.join(__dirname, BASE_PATH, fileName);
+    try {
+        const content = await fs.readFile(filePath, 'utf8');
+        return content;
+    } catch (error) {
+        if (error.code === 'ENOENT') {
+            throw new Error(`HTML file not found: ${fileName}`);
+        }
+        throw error;
     }
-    throw error;
-  }
 }
 
 /**
@@ -104,14 +106,14 @@ async function readHTMLFile(fileName) {
  * @returns {Object} - HTTP响应
  */
 function createSuccessResponse(content) {
-  return {
-    status: 200,
-    headers: {
-      'Content-Type': 'text/html; charset=utf-8',
-      'Cache-Control': 'public, max-age=3600'
-    },
-    body: content
-  };
+    return {
+        status: 200,
+        headers: {
+            'Content-Type': 'text/html; charset=utf-8',
+            'Cache-Control': 'public, max-age=3600'
+        },
+        body: content
+    };
 }
 
 /**
@@ -119,7 +121,7 @@ function createSuccessResponse(content) {
  * @returns {Object} - HTTP响应
  */
 function createNotFoundResponse() {
-  const html = `
+    const html = `
     <!DOCTYPE html>
     <html lang="zh-CN">
     <head>
@@ -140,14 +142,14 @@ function createNotFoundResponse() {
     </body>
     </html>
   `;
-  
-  return {
-    status: 404,
-    headers: {
-      'Content-Type': 'text/html; charset=utf-8'
-    },
-    body: html
-  };
+
+    return {
+        status: 404,
+        headers: {
+            'Content-Type': 'text/html; charset=utf-8'
+        },
+        body: html
+    };
 }
 
 /**
@@ -156,7 +158,7 @@ function createNotFoundResponse() {
  * @returns {Object} - HTTP响应
  */
 function createServerErrorResponse(error) {
-  const html = `
+    const html = `
     <!DOCTYPE html>
     <html lang="zh-CN">
     <head>
@@ -177,12 +179,15 @@ function createServerErrorResponse(error) {
     </body>
     </html>
   `;
-  
-  return {
-    status: 500,
-    headers: {
-      'Content-Type': 'text/html; charset=utf-8'
-    },
-    body: html
-  };
+
+    return {
+        status: 500,
+        headers: {
+            'Content-Type': 'text/html; charset=utf-8'
+        },
+        body: html
+    };
 }
+
+// EdgeOne Pages 要求使用 CommonJS 模块导出
+module.exports = handler;
