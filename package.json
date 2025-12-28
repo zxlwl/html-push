@@ -1,0 +1,30 @@
+{
+  "name": "serverless-html-router",
+  "version": "1.0.0",
+  "description": "A serverless HTML file router with custom routing rules",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js",
+    "start": "node local-server.js",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "serverless",
+    "router",
+    "html",
+    "aws-lambda",
+    "azure-functions",
+    "google-cloud-functions"
+  ],
+  "author": "Serverless HTML Router Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "eslint": "^8.56.0",
+    "typescript": "^5.3.3"
+  }
+}

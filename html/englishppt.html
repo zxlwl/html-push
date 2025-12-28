@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Power of Perseverance</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- GSAP for animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/ScrollTrigger.min.js"></script>
+    <!-- Three.js for 3D background -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Open+Sans:wght@300;400;600&family=Roboto+Slab:wght@400;700&display=swap');
+        
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #f39c12;
+            --text-color: #2c3e50;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+        }
+        
+        body {
+            font-family: 'Open Sans', sans-serif;
+            color: var(--text-color);
+            overflow-x: hidden;
+            background-color: #f8f9fa;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+        
+        .quote {
+            font-family: 'Roboto Slab', serif;
+        }
+        
+        .slide {
+            height: 100vh;
+            width: 100vw;
+            position: fixed;
+            top: 0;
+            left: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+            opacity: 0;
+            transform: translateX(100%);
+            z-index: 1;
+        }
+        
+        .slide.active {
+            opacity: 1;
+            transform: translateX(0);
+            z-index: 2;
+        }
+        
+        .slide-content {
+            z-index: 10;
+            max-width: 800px;
+            width: 90%;
+            text-align: center;
+            padding: 2rem;
+            background-color: rgba(255, 255, 255, 0.85);
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+            hyphens: auto;
+            max-height: 90vh;
+            overflow-y: auto;
+            /* 自定义滚动条样式 */
+            scrollbar-width: thin;
+            scrollbar-color: var(--secondary-color) rgba(255, 255, 255, 0.3);
+        }
+        
+        /* 自定义WebKit滚动条样式 */
+        .slide-content::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .slide-content::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+        }
+        
+        .slide-content::-webkit-scrollbar-thumb {
+            background-color: var(--secondary-color);
+            border-radius: 10px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .slide-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            object-fit: cover;
+        }
+        
+        .slide-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            background: linear-gradient(to bottom right, rgba(52, 152, 219, 0.7), rgba(243, 156, 18, 0.7));
+        }
+        
+        .navigation {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 100;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 2rem;
+        }
+        
+        .nav-btn {
+            background-color: rgba(255, 255, 255, 0.8);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .nav-btn:hover {
+            background-color: white;
+            transform: scale(1.1);
+        }
+        
+        .progress-indicator {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .progress-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.5);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .progress-dot.active {
+            background-color: white;
+            transform: scale(1.3);
+        }
+        
+        .autoplay-controls {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            z-index: 100;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .autoplay-btn {
+            background-color: rgba(255, 255, 255, 0.8);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .autoplay-btn:hover {
+            background-color: white;
+            transform: scale(1.1);
+        }
+        
+        #three-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+        
+        .highlight {
+            color: var(--secondary-color);
+            font-weight: 700;
+        }
+        
+        .fade-in {
+            opacity: 0;
+            animation: fadeIn 1s forwards;
+        }
+        
+        .slide-up {
+            opacity: 0;
+            transform: translateY(30px);
+            animation: slideUp 1s forwards;
+        }
+        
+        .scale-in {
+            opacity: 0;
+            transform: scale(0.8);
+            animation: scaleIn 1s forwards;
+        }
+        
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes scaleIn {
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        .typing-effect {
+            overflow: hidden;
+            border-right: 0.15em solid var(--secondary-color);
+            white-space: nowrap;
+            margin: 0 auto;
+            letter-spacing: 0.15em;
+            animation: typing 3.5s steps(40, end), blink-caret 0.75s step-end infinite;
+            max-width: 100%;
+            display: inline-block;
+            font-size: clamp(1.2rem, 3vw, 2.5rem);
+        }
+        
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+        
+        /* 针对第一页标题的特殊处理 */
+        .slide[data-index="0"] .typing-effect {
+            max-width: 100%;
+            word-break: break-word;
+        }
+        
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: var(--secondary-color) }
+        }
+        
+        .image-container {
+            margin: 2rem 0;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .image-container img {
+            width: 100%;
+            height: auto;
+            transition: transform 0.3s ease;
+        }
+        
+        .image-container:hover img {
+            transform: scale(1.05);
+        }
+        
+        .quote-card {
+            background-color: rgba(255, 255, 255, 0.9);
+            border-left: 5px solid var(--secondary-color);
+            padding: 1.5rem;
+            margin: 2rem 0;
+            text-align: left;
+            position: relative;
+        }
+        
+        .quote-card::before {
+            content: '"';
+            font-size: 5rem;
+            position: absolute;
+            top: -20px;
+            left: 10px;
+            color: rgba(243, 156, 18, 0.2);
+            font-family: 'Roboto Slab', serif;
+        }
+        
+        .timeline {
+            position: relative;
+            max-width: 800px;
+            margin: 2rem auto;
+        }
+        
+        .timeline::after {
+            content: '';
+            position: absolute;
+            width: 6px;
+            background-color: var(--primary-color);
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            margin-left: -3px;
+        }
+        
+        .timeline-item {
+            padding: 10px 40px;
+            position: relative;
+            width: 50%;
+            box-sizing: border-box;
+        }
+        
+        .timeline-item::after {
+            content: '';
+            position: absolute;
+            width: 25px;
+            height: 25px;
+            right: -12px;
+            background-color: white;
+            border: 4px solid var(--secondary-color);
+            top: 15px;
+            border-radius: 50%;
+            z-index: 1;
+        }
+        
+        .timeline-left {
+            left: 0;
+        }
+        
+        .timeline-right {
+            left: 50%;
+        }
+        
+        .timeline-right::after {
+            left: -13px;
+        }
+        
+        .timeline-content {
+            padding: 20px;
+            background-color: white;
+            position: relative;
+            border-radius: 6px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        @media screen and (max-width: 768px) {
+            .timeline::after {
+                left: 31px;
+            }
+            
+            .timeline-item {
+                width: 100%;
+                padding-left: 70px;
+                padding-right: 25px;
+            }
+            
+            .timeline-item::after {
+                left: 18px;
+            }
+            
+            .timeline-right {
+                left: 0;
+            }
+            
+            .slide-content {
+                padding: 1rem;
+                width: 95%;
+            }
+            
+            .navigation {
+                padding: 0 1rem;
+            }
+            
+            .nav-btn {
+                width: 40px;
+                height: 40px;
+            }
+            
+            h1.text-5xl.md\\:text-7xl {
+                font-size: 2.5rem;
+            }
+            
+            h2.text-4xl.md\\:text-5xl {
+                font-size: 2rem;
+            }
+            
+            .typing-effect {
+                white-space: normal;
+                overflow: visible;
+                border-right: none;
+                animation: none;
+                letter-spacing: normal;
+                font-size: 2rem;
+            }
+        }
+        
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: var(--secondary-color);
+            border-radius: 50%;
+            animation: confetti-fall 3s ease-in-out forwards;
+            z-index: 100;
+            opacity: 0;
+            transform: translateY(-100vh);
+        }
+        
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Three.js Background -->
+    <div id="three-bg"></div>
+    
+    <!-- Slides -->
+    <div class="slides-container">
+        <!-- Slide 1: Title -->
+        <div class="slide active" data-index="0">
+            <div class="slide-overlay"></div>
+            <div class="slide-content">
+                <h1 class="mb-6 typing-effect">The Power of Perseverance</h1>
+                <p class="text-xl md:text-2xl mb-8 fade-in" style="animation-delay: 4s;">坚持的力量</p>
+                <div class="image-container scale-in" style="animation-delay: 4.5s;">
+                    <img src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/f011843ca57d4015b28650bb7a101f10~tplv-a9rns2rl98-image.image?rcl=202512271830554E4A6BDAC0F5B1104192&rk3s=8e244e95&rrcfp=f06b921b&x-expires=1769423502&x-signature=hy5cRsUSNC9X6eyJn6mR8XV96nU%3D" alt="The Power of Perseverance">
+                </div>
+            </div>
+        </div>
+        
+        <!-- Slide 2: Introduction -->
+        <div class="slide" data-index="1">
+            <div class="slide-overlay"></div>
+            <div class="slide-content">
+                <h2 class="text-4xl md:text-5xl mb-6 fade-in">Good morning, teachers and classmates!</h2>
+                <p class="text-2xl md:text-3xl mb-6 fade-in" style="animation-delay: 0.3s;">老师们、同学们，早上好！</p>
+                <p class="text-lg md:text-xl mb-6 slide-up" style="animation-delay: 0.6s;">
+                    Today, I want to talk about a simple but strong word — <span class="highlight">perseverance</span>. 
+                    It means keeping going even when things are hard. I think we all need this quality in our high school life.
+                </p>
+                <p class="text-lg md:text-xl slide-up" style="animation-delay: 0.9s;">
+                    今天，我想和大家聊聊一个简单却充满力量的词——<span class="highlight">坚持</span>。
+                    它指的是即使遇到困难，也要继续前行。我认为，我们在高中生活中都需要这种品质。
+                </p>
+            </div>
+        </div>
+        
+        <!-- Slide 3: Studies Example -->
+        <div class="slide" data-index="2">
+            <div class="slide-overlay"></div>
+            <div class="slide-content">
+                <h2 class="text-4xl md:text-5xl mb-6 fade-in">Let's think about our studies</h2>
+                <p class="text-lg md:text-xl mb-6 slide-up" style="animation-delay: 0.3s;">
+                    Maybe you've struggled with math problems. You tried once, twice, and felt like giving up. 
+                    But if you keep practicing, asking teachers or friends for help, you'll finally solve them. 
+                    That's <span class="highlight">perseverance</span>.
+                </p>
+                <p class="text-lg md:text-xl mb-6 slide-up" style="animation-delay: 0.6s;">
+                    想想我们的学习吧。也许你曾为数学题绞尽脑汁，试了一次、两次，就想放弃了。
+                    但如果你坚持练习，向老师或朋友求助，最终一定能解出来。这就是<span class="highlight">坚持</span>。
+                </p>
+                <div class="image-container scale-in" style="animation-delay: 0.9s;">
+                    <img src="https://p3-doubao-search-sign.byteimg.com/labis/3e8565117989af25172e72728b001929~tplv-be4g95zd3a-image.jpeg?rk3s=542c0f93&x-expires=1782383476&x-signature=pJit5JDMaQEuQuLMb7i1vsvCAqU%3D" alt="Study and Growth">
+                </div>
+            </div>
+        </div>
+        
+        <!-- Slide 4: Personal Experience -->
+        <div class="slide" data-index="3">
+            <div class="slide-overlay"></div>
+            <div class="slide-content">
+                <h2 class="text-4xl md:text-5xl mb-6 fade-in">My Personal Experience</h2>
+                <div class="quote-card slide-up" style="animation-delay: 0.3s;">
+                    <p class="text-lg md:text-xl">
+                        I remember when I started learning English speaking. I was so shy to open my mouth. 
+                        Every time I tried, I made mistakes and felt embarrassed. But my teacher told me, 
+                        "<span class="highlight">Mistakes are part of learning.</span>"
+                    </p>
+                </div>
+                <p class="text-lg md:text-xl mb-6 slide-up" style="animation-delay: 0.6s;">
+                    So I kept practicing every day — reading aloud, talking with classmates. 
+                    Now, I'm not afraid to speak English in class. This small success comes from <span class="highlight">not giving up</span>.
+                </p>
+                <p class="text-lg md:text-xl slide-up" style="animation-delay: 0.9s;">
+                    我记得自己刚开始学英语口语时，害羞得不敢开口。每次尝试都会犯错，然后感到尴尬。
+                    但我的老师告诉我："<span class="highlight">犯错是学习的一部分。</span>"于是我每天坚持练习——大声朗读、和同学对话。
+                    现在，我再也不怕在课堂上说英语了。这个小小的成功，就源于<span class="highlight">不放弃</span>。
+                </p>
+            </div>
+        </div>
+        
+        <!-- Slide 5: High School Challenges -->
+        <div class="slide" data-index="4">
+            <div class="slide-overlay"></div>
+            <div class="slide-content">
+                <h2 class="text-4xl md:text-5xl mb-6 fade-in">High School Challenges</h2>
+                <p class="text-lg md:text-xl mb-6 slide-up" style="animation-delay: 0.3s;">
+                    High school is full of challenges. We may face tough exams, busy homework, or difficulties in friendships. 
+                    Sometimes we feel tired and want to stop. But remember: <span class="highlight">no success comes easily</span>.
+                </p>
+                <p class="text-lg md:text-xl mb-6 slide-up" style="animation-delay: 0.6s;">
+                    高中生活充满挑战。我们可能会面临棘手的考试、繁重的作业，或是人际关系上的难题。
+                    有时我们会感到疲惫，想要停下脚步。但请记住：<span class="highlight">没有任何成功是轻易得来的</span>。
+                </p>
+                <div class="image-container scale-in" style="animation-delay: 0.9s;">
+                    <img src="https://p3-doubao-search-sign.byteimg.com/tos-cn-i-be4g95zd3a/1073431907810934895~tplv-be4g95zd3a-image.jpeg?rk3s=542c0f93&x-expires=1782383476&x-signature=19N%2F5YSLfiUjg2rUi9XoYAQxrIA%3D" alt="Overcoming Challenges">
+                </div>
+                <p class="text-lg md:text-xl mt-6 slide-up" style="animation-delay: 1.2s;">
+                    The difference between success and failure is whether you keep trying.
+                </p>
+                <p class="text-lg md:text-xl slide-up" style="animation-delay: 1.5s;">
+                    成功与失败的区别，就在于你是否愿意坚持尝试。
+                </p>
+            </div>
+        </div>
+        
+        <!-- Slide 6: Definition of Perseverance -->
+        <div class="slide" data-index="5">
+            <div class="slide-overlay"></div>
+            <div class="slide-content">
+                <h2 class="text-4xl md:text-5xl mb-6 fade-in">What is Perseverance?</h2>
+                <div class="quote-card slide-up" style="animation-delay: 0.3s;">
+                    <p class="text-xl md:text-2xl quote">
+                        Perseverance isn't about being perfect. It's about taking one more step when you want to quit. 
+                        It's about believing that your efforts will pay off one day.
+                    </p>
+                </div>
+                <p class="text-xl md:text-2xl mt-6 slide-up" style="animation-delay: 0.6s;">
+                    坚持并非追求完美，而是在你想放弃时，再迈出一步；是相信自己的努力终有一天会得到回报。
+                </p>
+                <div class="image-container scale-in" style="animation-delay: 0.9s;">
+                    <img src="https://p3-doubao-search-sign.byteimg.com/pgc-image/R9ZF9QY9iuzhab~tplv-be4g95zd3a-image.jpeg?rk3s=542c0f93&x-expires=1782383476&x-signature=bNtijhLp6z0EIPihPWkXFA6QMWs%3D" alt="Perseverance">
+                </div>
+            </div>
+        </div>
+        
+        <!-- Slide 7: Conclusion -->
+        <div class="slide" data-index="6">
+            <div class="slide-overlay"></div>
+            <div class="slide-content">
+                <h2 class="text-4xl md:text-5xl mb-6 fade-in">So, my dear classmates</h2>
+                <p class="text-xl md:text-2xl mb-6 slide-up" style="animation-delay: 0.3s;">
+                    Let's hold on to perseverance. When you feel down, tell yourself: 
+                    "<span class="highlight">I can do it. Just keep going.</span>"
+                </p>
+                <p class="text-xl md:text-2xl mb-6 slide-up" style="animation-delay: 0.6s;">
+                    所以，亲爱的同学们，让我们坚守这份坚持吧。当你感到沮丧时，告诉自己：
+                    "<span class="highlight">我能行，坚持下去就好。</span>"
+                </p>
+                <div class="image-container scale-in" style="animation-delay: 0.9s;">
+                    <img src="https://p3-doubao-search-sign.byteimg.com/tos-cn-i-be4g95zd3a/913900896693780481~tplv-be4g95zd3a-image.jpeg?rk3s=542c0f93&x-expires=1782383476&x-signature=YxHHdoTyNEiMhtEOfJRXanD8krk%3D" alt="Keep Going">
+                </div>
+                <p class="text-2xl md:text-3xl mt-6 highlight scale-in" style="animation-delay: 1.2s;">
+                    Thank you for your listening!
+                </p>
+                <p class="text-2xl md:text-3xl highlight scale-in" style="animation-delay: 1.5s;">
+                    感谢大家的聆听！
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Navigation -->
+    <div class="navigation">
+        <button class="nav-btn prev-btn" id="prev-btn">
+            <i class="fas fa-chevron-left text-2xl"></i>
+        </button>
+        <button class="nav-btn next-btn" id="next-btn">
+            <i class="fas fa-chevron-right text-2xl"></i>
+        </button>
+    </div>
+    
+    <!-- Progress Indicator -->
+    <div class="progress-indicator" id="progress-indicator">
+        <!-- Dots will be added dynamically -->
+    </div>
+    
+    <!-- Autoplay Controls -->
+    <div class="autoplay-controls">
+        <button class="autoplay-btn" id="play-btn">
+            <i class="fas fa-play"></i>
+        </button>
+        <button class="autoplay-btn" id="pause-btn" style="display: none;">
+            <i class="fas fa-pause"></i>
+        </button>
+    </div>
+    
+    <script>
+        // Initialize variables
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        let isAutoplay = false;
+        let autoplayInterval;
+        const autoplayDuration = 5000; // 5 seconds per slide
+        
+        // Initialize Three.js background
+        function initThreeBackground() {
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            
+            const renderer = new THREE.WebGLRenderer({ alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.getElementById('three-bg').appendChild(renderer.domElement);
+            
+            // Create gradient background
+            const geometry = new THREE.BoxGeometry(20, 20, 20);
+            const materials = [];
+            
+            // Create materials for each face with gradient colors
+            for (let i = 0; i < 6; i++) {
+                materials.push(new THREE.MeshBasicMaterial({ 
+                    color: i % 2 === 0 ? 0x3498db : 0xf39c12,
+                    transparent: true,
+                    opacity: 0.7
+                }));
+            }
+            
+            const cube = new THREE.Mesh(geometry, materials);
+            scene.add(cube);
+            
+            camera.position.z = 5;
+            
+            // Animation loop
+            function animate() {
+                requestAnimationFrame(animate);
+                
+                // Rotate cube based on current slide
+                cube.rotation.x = Math.sin(currentSlide * 0.5) * 0.5;
+                cube.rotation.y = Math.cos(currentSlide * 0.5) * 0.5;
+                
+                renderer.render(scene, camera);
+            }
+            
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+            
+            animate();
+        }
+        
+        // Initialize progress indicator
+        function initProgressIndicator() {
+            const indicator = document.getElementById('progress-indicator');
+            
+            for (let i = 0; i < totalSlides; i++) {
+                const dot = document.createElement('div');
+                dot.classList.add('progress-dot');
+                if (i === currentSlide) {
+                    dot.classList.add('active');
+                }
+                
+                dot.addEventListener('click', () => {
+                    goToSlide(i);
+                });
+                
+                indicator.appendChild(dot);
+            }
+        }
+        
+        // Update progress indicator
+        function updateProgressIndicator() {
+            const dots = document.querySelectorAll('.progress-dot');
+            
+            dots.forEach((dot, index) => {
+                if (index === currentSlide) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+        }
+        
+        // Go to specific slide
+        function goToSlide(index) {
+            if (index < 0 || index >= totalSlides) return;
+            
+            // Determine animation direction
+            const direction = index > currentSlide ? 1 : -1;
+            
+            // Set exit animation for current slide
+            if (currentSlide !== index) {
+                slides[currentSlide].style.transform = `translateX(${-100 * direction}%)`;
+            }
+            
+            // Reset animations for all slides
+            slides.forEach(slide => {
+                const animatedElements = slide.querySelectorAll('.fade-in, .slide-up, .scale-in');
+                animatedElements.forEach(el => {
+                    el.style.animation = 'none';
+                    el.offsetHeight; // Trigger reflow
+                });
+            });
+            
+            // Hide all slides
+            slides.forEach(slide => {
+                slide.classList.remove('active');
+                slide.style.transform = `translateX(${100 * direction}%)`;
+            });
+            
+            // Show current slide
+            slides[index].classList.add('active');
+            slides[index].style.transform = 'translateX(0)';
+            
+            // Restart animations for current slide with a small delay to ensure slide is visible
+            setTimeout(() => {
+                const currentSlideElement = slides[index];
+                const animatedElements = currentSlideElement.querySelectorAll('.fade-in, .slide-up, .scale-in');
+                animatedElements.forEach(el => {
+                    const animationName = el.classList.contains('fade-in') ? 'fadeIn' : 
+                                          el.classList.contains('slide-up') ? 'slideUp' : 'scaleIn';
+                    const delay = el.style.animationDelay || '0s';
+                    el.style.animation = `${animationName} 1s forwards ${delay}`;
+                });
+            }, 100);
+            
+            currentSlide = index;
+            updateProgressIndicator();
+            
+            // Special effect for last slide (confetti)
+            if (index === totalSlides - 1) {
+                setTimeout(createConfetti, 500);
+            }
+        }
+        
+        // Next slide
+        function nextSlide() {
+            let nextIndex = currentSlide + 1;
+            if (nextIndex >= totalSlides) {
+                nextIndex = 0; // Loop back to first slide
+            }
+            goToSlide(nextIndex);
+        }
+        
+        // Previous slide
+        function prevSlide() {
+            let prevIndex = currentSlide - 1;
+            if (prevIndex < 0) {
+                prevIndex = totalSlides - 1; // Loop to last slide
+            }
+            goToSlide(prevIndex);
+        }
+        
+        // Toggle autoplay
+        function toggleAutoplay() {
+            const playBtn = document.getElementById('play-btn');
+            const pauseBtn = document.getElementById('pause-btn');
+            
+            if (isAutoplay) {
+                // Stop autoplay
+                clearInterval(autoplayInterval);
+                playBtn.style.display = 'flex';
+                pauseBtn.style.display = 'none';
+                isAutoplay = false;
+            } else {
+                // Start autoplay
+                autoplayInterval = setInterval(nextSlide, autoplayDuration);
+                playBtn.style.display = 'none';
+                pauseBtn.style.display = 'flex';
+                isAutoplay = true;
+            }
+        }
+        
+        // Create confetti effect
+        function createConfetti() {
+            const colors = ['#3498db', '#f39c12', '#2ecc71', '#e74c3c', '#9b59b6'];
+            const confettiContainer = document.querySelector('.slide[data-index="6"]');
+            
+            for (let i = 0; i < 100; i++) {
+                const confetti = document.createElement('div');
+                confetti.classList.add('confetti');
+                
+                // Random properties
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.left = `${Math.random() * 100}vw`;
+                confetti.style.width = `${Math.random() * 10 + 5}px`;
+                confetti.style.height = `${Math.random() * 10 + 5}px`;
+                confetti.style.animationDuration = `${Math.random() * 3 + 2}s`;
+                confetti.style.animationDelay = `${Math.random() * 2}s`;
+                
+                confettiContainer.appendChild(confetti);
+                
+                // Remove confetti after animation
+                confetti.addEventListener('animationend', () => {
+                    confetti.remove();
+                });
+            }
+        }
+        
+        // Initialize event listeners
+        function initEventListeners() {
+            // Navigation buttons
+            document.getElementById('prev-btn').addEventListener('click', prevSlide);
+            document.getElementById('next-btn').addEventListener('click', nextSlide);
+            
+            // Autoplay buttons
+            document.getElementById('play-btn').addEventListener('click', toggleAutoplay);
+            document.getElementById('pause-btn').addEventListener('click', toggleAutoplay);
+            
+            // Keyboard navigation
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowLeft') {
+                    prevSlide();
+                } else if (e.key === 'ArrowRight') {
+                    nextSlide();
+                }
+            });
+            
+            // Touch swipe navigation
+            let touchStartX = 0;
+            let touchEndX = 0;
+            
+            document.addEventListener('touchstart', (e) => {
+                touchStartX = e.changedTouches[0].screenX;
+            });
+            
+            document.addEventListener('touchend', (e) => {
+                touchEndX = e.changedTouches[0].screenX;
+                handleSwipe();
+            });
+            
+            function handleSwipe() {
+                const swipeThreshold = 50;
+                if (touchEndX < touchStartX - swipeThreshold) {
+                    // Swipe left
+                    nextSlide();
+                } else if (touchEndX > touchStartX + swipeThreshold) {
+                    // Swipe right
+                    prevSlide();
+                }
+            }
+        }
+        
+        // Initialize everything
+        function init() {
+            initThreeBackground();
+            initProgressIndicator();
+            initEventListeners();
+            goToSlide(0);
+        }
+        
+        // Start the application
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
