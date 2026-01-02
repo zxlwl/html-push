@@ -42,11 +42,15 @@
         }
         
         .slide {
-            height: 100vh;
+            /* 16:9 aspect ratio for standard computer display */
             width: 100vw;
+            max-width: 1600px;
+            height: auto;
+            aspect-ratio: 16 / 9;
             position: fixed;
-            top: 0;
-            left: 0;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) translateX(100%);
             overflow: hidden;
             display: flex;
             flex-direction: column;
@@ -55,33 +59,35 @@
             padding: 2rem;
             transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
             opacity: 0;
-            transform: translateX(100%);
             z-index: 1;
         }
         
         .slide.active {
             opacity: 1;
-            transform: translateX(0);
+            transform: translate(-50%, -50%) translateX(0);
             z-index: 2;
         }
         
         .slide-content {
             z-index: 10;
-            max-width: 800px;
-            width: 90%;
+            max-width: none;
+            width: 100%;
+            height: 100%;
             text-align: center;
             padding: 2rem;
             background-color: rgba(255, 255, 255, 0.85);
-            border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             overflow-wrap: break-word;
             word-wrap: break-word;
             hyphens: auto;
-            max-height: 90vh;
+            max-height: none;
             overflow-y: auto;
             /* 自定义滚动条样式 */
             scrollbar-width: thin;
             scrollbar-color: var(--secondary-color) rgba(255, 255, 255, 0.3);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
         
         /* 自定义WebKit滚动条样式 */
@@ -254,26 +260,41 @@
         }
         
         .typing-effect {
-            overflow: hidden;
+            /* overflow: hidden; */
             border-right: 0.15em solid var(--secondary-color);
-            white-space: nowrap;
+            white-space: normal;
             margin: 0 auto;
-            letter-spacing: 0.15em;
-            animation: typing 3.5s steps(40, end), blink-caret 0.75s step-end infinite;
+            letter-spacing: 0.1em;
+            animation: blink-caret 0.75s step-end infinite;
             max-width: 100%;
-            display: inline-block;
-            font-size: clamp(1.2rem, 3vw, 2.5rem);
+            /* display: block; */
+            font-size: clamp(1.8rem, 5vw, 3.5rem);
+            text-align: center;
+            padding: 0 1rem;
+            box-sizing: border-box;
+            line-height: 1.2;
+            word-wrap: break-word;
         }
         
-        @keyframes typing {
-            from { width: 0 }
-            to { width: 100% }
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: var(--secondary-color) }
         }
         
         /* 针对第一页标题的特殊处理 */
         .slide[data-index="0"] .typing-effect {
             max-width: 100%;
             word-break: break-word;
+        }
+        
+        /* 确保Three.js背景填充整个屏幕 */
+        #three-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
         }
         
         @keyframes blink-caret {
@@ -722,7 +743,7 @@
             
             // Set exit animation for current slide
             if (currentSlide !== index) {
-                slides[currentSlide].style.transform = `translateX(${-100 * direction}%)`;
+                slides[currentSlide].style.transform = `translate(-50%, -50%) translateX(${-100 * direction}%)`;
             }
             
             // Reset animations for all slides
@@ -737,12 +758,12 @@
             // Hide all slides
             slides.forEach(slide => {
                 slide.classList.remove('active');
-                slide.style.transform = `translateX(${100 * direction}%)`;
+                slide.style.transform = `translate(-50%, -50%) translateX(${100 * direction}%)`;
             });
             
             // Show current slide
             slides[index].classList.add('active');
-            slides[index].style.transform = 'translateX(0)';
+            slides[index].style.transform = 'translate(-50%, -50%) translateX(0)';
             
             // Restart animations for current slide with a small delay to ensure slide is visible
             setTimeout(() => {
@@ -873,12 +894,42 @@
             }
         }
         
+        // Initialize typing effect
+        function initTypingEffect() {
+            const typingElements = document.querySelectorAll('.typing-effect');
+            
+            typingElements.forEach(element => {
+                const originalText = element.textContent;
+                element.textContent = '';
+                
+                let charIndex = 0;
+                const typingSpeed = 100; // Speed in milliseconds
+                
+                function type() {
+                    if (charIndex < originalText.length) {
+                        element.textContent += originalText.charAt(charIndex);
+                        charIndex++;
+                        setTimeout(type, typingSpeed);
+                    } else {
+                        // Remove the cursor after typing is complete
+                        setTimeout(() => {
+                            element.style.borderRight = 'none';
+                        }, 1000);
+                    }
+                }
+                
+                // Start typing effect with a delay
+                setTimeout(type, 500);
+            });
+        }
+        
         // Initialize everything
         function init() {
             initThreeBackground();
             initProgressIndicator();
             initEventListeners();
             goToSlide(0);
+            initTypingEffect();
         }
         
         // Start the application
